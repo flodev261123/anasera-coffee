@@ -12,6 +12,8 @@ class Products extends BaseController
     {
         $productsModel = new ProductsModel();
         $recipesModel = new RecipesModel();
+        $categoryModel = new CategoryModel();
+    
         $session = session();
     
         if ($session->has('name')) {
@@ -20,18 +22,55 @@ class Products extends BaseController
             return redirect()->to('loginadmin');
         }
     
-        $products = $productsModel->getProductsWithCategory();
+        $category = $this->request->getGet('category');
+    
+      
+        if ($category && $category != 'all') {
+            $categoryData = $categoryModel->find($category);
+            if ($categoryData) {
+                $categoryName = $categoryData['category_name'];
+                $products = $productsModel->getProductsWithCategory($category);
+                if (empty($products)) {
+                    $all = "Kategori '$categoryName' tidak memiliki produk yang tersedia.";
+                    session()->setFlashdata("all", $all);
+                } else {
+                    $all = "Menampilkan semua produk dalam kategori '$categoryName'.";
+                    session()->setFlashdata("all", $all);
+                }
+            } else {
+                $all = "Kategori tidak ditemukan.";
+                session()->setFlashdata("all", $all);
+            }
+        } else {
+            $products = $productsModel->getProductsWithCategory();
+            $all ="Menampilkan semua produk";
+            session()->setFlashdata("all",$all);
+        }
+    
         foreach ($products as &$product) {
             $product['hasRecipe'] = $recipesModel->where('products_id', $product['id'])->first() !== null;
         }
     
+        $recipes = $recipesModel->getRecipesWithProducts();
+        
+       
         $data['products'] = $products;
         $data['userName'] = $userName;
+        $data['categories'] = $categoryModel->findAll();
+        $data['recipes'] = $recipes;
+    
+        $cekProducts = $productsModel->countAllResults();
+    
+        if ($cekProducts == 0) {
+            $empty = "Ups !! Data Masih Kosong";
+            $notFound = $session->setFlashdata("empty", $empty);
+        }
     
         echo view("autoviews/MainHeader", $data);
         echo view("mainpages/ProductsView", $data);
         echo view("autoviews/MainFooter", $data);
     }
+    
     
 
 
@@ -179,7 +218,7 @@ public function create()
 
 
  
-    public function delete($id = null)
+    public function delete($id)
     {
         $productsModel = new ProductsModel();
         $productsModel->where('id', $id)->delete($id);
@@ -272,4 +311,308 @@ public function create()
         echo view("autoviews/MainFooter", $data);
        
     }
+
+    public function edit($id)
+    {
+        helper('form');
+        $productsModel = new ProductsModel();
+        $categoryModel = new CategoryModel();
+        $ingredientsModel = new IngredientsModel();
+        $session = session();
+    
+       
+    
+       
+          
+            $product = $productsModel->find($id);
+    
+            if (!$product) {
+                return redirect()->to('/products')->with('error', 'Product not found.');
+            }
+    
+          
+            $session->setFlashdata('no_recipe', 'Product ini belum memiliki resep.');
+    
+            $data['product'] = $product;
+            $data['categories'] = $categoryModel->findAll();
+            $data['userName'] = $session->get('name');
+    
+            echo view("autoviews/MainHeader", $data);
+            echo view("mainpages/EditProductView", $data);
+            echo view("autoviews/MainFooter", $data);
+        
+    }
+    
+
+    
+public function update($id)
+{
+    helper('form');
+    $productsModel = new ProductsModel();
+    $categoryModel = new CategoryModel();
+    $ingredientsModel = new IngredientsModel();
+
+
+    $val = $this->validate([
+        'nama_produk' => [
+            'label' => 'Nama Produk',
+            'rules' => 'required',
+            'errors' => [
+                'required' => 'Nama Produk harus diisi.'
+            ]
+        ],
+        'category' => [
+            'label' => 'Category',
+            'rules' => 'required',
+            'errors' => [
+                'required' => 'Category harus diisi.'
+            ]
+        ],
+        'harga_satuan' => [
+            'label' => 'Harga Satuan',
+            'rules' => 'required|numeric|greater_than_equal_to[1]',
+            'errors' => [
+                'required' => 'Harga Satuan harus diisi.',
+                'numeric' => 'Harga Satuan harus berupa numeric.',
+                'greater_than_equal_to' => 'Harga Tidak Valid.'
+            ]
+        ],
+        'foto' => [
+            'label' => 'Foto',
+            'rules' => 'max_size[foto,10024]|ext_in[foto,jpg,jpeg,png]',
+            'errors' => [
+                'max_size' => 'Ukuran foto tidak boleh lebih dari 1GB.',
+                'ext_in' => 'Foto harus dalam format jpg, jpeg, atau png.'
+            ]
+        ],
+        'unit' => [
+            'label' => 'satuan',
+            'rules' => 'required',
+            'errors' => [
+                'required' => 'Satuan perunit harus diisi.'
+            ]
+        ]
+    ]);
+
+    $session = session();
+
+    if ($session->has('name')) {
+        $userName = $session->get('name');
+    } else {
+        return redirect()->to('loginadmin');
+    }
+
+    $data['userName'] = $userName;
+
+    if (!$val) {
+        $product = $productsModel->find($id);
+    
+            if (!$product) {
+                return redirect()->to('/products')->with('error', 'Product not found.');
+            }
+    
+          
+            $session->setFlashdata('no_recipe', 'Product ini belum memiliki resep.');
+    
+            $data['validation'] = $this->validator;
+            $data['product'] = $product;
+            $data['categories'] = $categoryModel->findAll();
+            $data['userName'] = $session->get('name');
+    
+            echo view("autoviews/MainHeader", $data);
+            echo view("mainpages/EditProductView_b", $data);
+            echo view("autoviews/MainFooter", $data);
+    } else {
+        $product = $productsModel->find($id);
+
+        if (!$product) {
+            return redirect()->to('/products')->with('error', 'Product not found.');
+        }
+
+        $file = $this->request->getFile('foto');
+        $newName = $product['foto'];
+
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $newName = $file->getRandomName();
+            if ($file->move(FCPATH . 'uploads', $newName)) {
+             
+                if ($product['foto'] && file_exists(FCPATH . $product['foto'])) {
+                    unlink(FCPATH . $product['foto']);
+                }
+                $newName = 'uploads/' . $newName; 
+            } else {
+                return redirect()->back()->with('error', 'File move failed.');
+            }
+        }
+
+        $data = [
+            'nama_produk' => $this->request->getVar('nama_produk'),
+            'category' => $this->request->getVar('category'),
+            'harga_satuan' => $this->request->getVar('harga_satuan'),
+            'foto' => $newName, // Use the existing or new photo path
+            'unit' => $this->request->getVar('unit'),
+            'update_at' => date('Y-m-d H:i:s')
+        ];
+
+        if ($productsModel->update($id, $data)) {
+            return redirect()->to('/products')->with('success', 'Data updated successfully.');
+        } else {
+            return redirect()->back()->with('error', 'Data update failed.')->withInput();
+        }
+    }
+}
+// public function update_w_recipes($id)
+// {
+//     helper('form');
+//     $productsModel = new ProductsModel();
+//     $categoryModel = new CategoryModel();
+//     $recipesModel = new RecipesModel();
+//     $ingredientsModel = new IngredientsModel();
+
+//     $val = $this->validate([
+//         'nama_produk' => [
+//             'label' => 'Nama Produk',
+//             'rules' => 'required',
+//             'errors' => [
+//                 'required' => 'Nama Produk harus diisi.'
+//             ]
+//         ],
+//         'category' => [
+//             'label' => 'Category',
+//             'rules' => 'required',
+//             'errors' => [
+//                 'required' => 'Category harus diisi.'
+//             ]
+//         ],
+//         'harga_satuan' => [
+//             'label' => 'Harga Satuan',
+//             'rules' => 'required|numeric|greater_than_equal_to[1]',
+//             'errors' => [
+//                 'required' => 'Harga Satuan harus diisi.',
+//                 'numeric' => 'Harga Satuan harus berupa numeric.',
+//                 'greater_than_equal_to' => 'Harga Tidak Valid.'
+//             ]
+//         ],
+//         'foto' => [
+//             'label' => 'Foto',
+//             'rules' => 'max_size[foto,10024]|ext_in[foto,jpg,jpeg,png]',
+//             'errors' => [
+//                 'max_size' => 'Ukuran foto tidak boleh lebih dari 1GB.',
+//                 'ext_in' => 'Foto harus dalam format jpg, jpeg, atau png.'
+//             ]
+//         ],
+//         'unit' => [
+//             'label' => 'Stock',
+//             'rules' => 'required',
+//             'errors' => [
+//                 'required' => 'Satuan perunit harus diisi.'
+//             ]
+//         ]
+//     ]);
+
+//     $session = session();
+
+//     if ($session->has('name')) {
+//         $userName = $session->get('name');
+//     } else {
+//         return redirect()->to('loginadmin');
+//     }
+
+//     $data['userName'] = $userName;
+
+//     if (!$val) {
+//         $recipe = $recipesModel->where('products_id', $id)->first();
+
+//         $product = $productsModel->find($id);
+    
+//         if (!$product) {
+//             return redirect()->to('/products')->with('error', 'Product not found.');
+//         }
+    
+//         $ingredients = $ingredientsModel->findAll();
+//         $recipe_ingredients = explode(',', $recipe['ingredients']);
+//         $recipe_amounts = explode(',', $recipe['amount']);
+          
+//         $data = [
+//             'product' => $product,
+//             'recipe' => $recipe,
+//             'recipe_ingredients' => $recipe_ingredients,
+//             'recipe_amounts' => $recipe_amounts,
+//             'ingredients' => $ingredients,
+//             'categories' => $categoryModel->findAll(),
+//             'userName' => $session->get('name'),
+//         ];
+//         $data['validation'] = $this->validator;
+
+//         echo view("autoviews/MainHeader", $data);
+//         echo view("mainpages/EditProductView", $data);
+//         echo view("autoviews/MainFooter", $data);
+//     } else {
+//         $product = $productsModel->find($id);
+
+//         if (!$product) {
+//             return redirect()->to('/products')->with('error', 'Product not found.');
+//         }
+
+//         $file = $this->request->getFile('foto');
+//         $newName = $product['foto'];
+
+//         if ($file && $file->isValid() && !$file->hasMoved()) {
+//             $newName = $file->getRandomName();
+//             if ($file->move(FCPATH . 'uploads', $newName)) {
+//                 if ($product['foto'] && file_exists(FCPATH . $product['foto'])) {
+//                     unlink(FCPATH . $product['foto']);
+//                 }
+//                 $newName = 'uploads/' . $newName; 
+//             } else {
+//                 return redirect()->back()->with('error', 'File move failed.');
+//             }
+//         }
+
+//         $data = [
+//             'nama_produk' => $this->request->getVar('nama_produk'),
+//             'category' => $this->request->getVar('category'),
+//             'harga_satuan' => $this->request->getVar('harga_satuan'),
+//             'foto' => $newName, 
+//             'unit' => $this->request->getVar('unit'),
+//             'update_at' => date('Y-m-d H:i:s')
+//         ];
+
+//         $productsModel->update($id, $data);
+
+//         $ingredients = $this->request->getVar('ingredients');
+
+//         if ($ingredients) {
+//             foreach ($ingredients as $ingredient) {
+//                 $ingredientStock = $ingredientsModel->find($ingredient['id'])['stock'];
+//                 if ($ingredient['amount'] > $ingredientStock) {
+//                     $ingredientName = $ingredientsModel->find($ingredient['id'])['ingredients_name'];
+//                     return redirect()->back()->with('error', 'Amount yang dimasukkan untuk ' . $ingredientName . ' melebihi jumlah stok yang tersedia.');
+//                 }
+//             }
+
+//             $ingredientIds = array_column($ingredients, 'id');
+//             $amounts = array_column($ingredients, 'amount');
+
+//             $recipeData = [
+//                 'products_id' => $id,
+//                 'ingredients' => implode(',', $ingredientIds),
+//                 'amount' => implode(',', $amounts),
+//             ];
+
+//             $existingRecipe = $recipesModel->where('products_id', $id)->first();
+//             if ($existingRecipe) {
+//                 $recipesModel->update($existingRecipe['id'], $recipeData);
+//             } else {
+//                 $recipesModel->insert($recipeData);
+//             }
+//         } else {
+//             $recipesModel->where('products_id', $id)->delete();
+//         }
+
+//         return redirect()->to('/products')->with('success', 'Data updated successfully.');
+//     }
+// }
+
+
 }

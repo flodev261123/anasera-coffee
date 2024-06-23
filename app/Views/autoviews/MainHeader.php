@@ -32,7 +32,7 @@
 
             <div class="w-1/2 pl-2 md:pl-0">
                 <a class="text-gray-900 text-base xl:text-xl no-underline hover:no-underline font-bold" href="#">
-                    <i class="fa-solid fa-mug-hot"></i> Nanda Inventory
+                    <i class="fa-solid fa-mug-hot"></i> Anasera Inventory
                 </a>
             </div>
             <div class="w-1/2 pr-0">
@@ -88,52 +88,60 @@
                 <ul class="list-reset lg:flex flex-1 items-center px-4 md:px-0">
                     <li class="mr-6 my-2 md:my-0">
                         <a href="#"
-                            class="block py-1 md:py-3 pl-1 align-middle text-amber-800 no-underline hover:text-gray-900 border-b-2 border-amber-600 hover:border-orange-600">
+                            class="block py-1 md:py-3 pl-1 align-middle text-amber-800 no-underline hover:text-gray-900 ">
                             <i class="fas fa-home fa-fw mr-3 text-amber-800"></i><span
                                 class="pb-1 md:pb-0 text-sm">Home</span>
                         </a>
                     </li>
                     <li class="mr-6 my-2 md:my-0">
                         <a href="<?= site_url("products")?>"
-                            class="block py-1 md:py-3 pl-1 align-middle text-amber-800 no-underline hover:text-gray-900 border-b-2  hover:border-orange-600">
-                            <i class="fas fa-tasks fa-fw mr-3 text-amber-800 hover:text-gray-900"></i><span
-                                class="pb-1 md:pb-0 text-sm">Products</span>
+                            class="flex py-1 md:py-3 pl-1 align-middle text-amber-800 no-underline hover:text-gray-900 border-b-2 gap-3 ">
+                            <svg class="h-5 w-5 text-amber-700" width="24" height="24" viewBox="0 0 24 24"
+                                stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" />
+                                <path d="M5 6h10a1 1 0 0 1 1 1v8a4 4 0 0 1 -4 4h-4a4 4 0 0 1 -4 -4v-8a1 1 0 0 1 1 -1" />
+                                <path d="M16 9h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2" />
+                            </svg> <span class="pb-1 md:pb-0 text-sm">
+                                Products</span>
                         </a>
                     </li>
                     <li class="mr-6 my-2 md:my-0">
                         <a href="<?= site_url("ingredients")?>"
-                            class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-purple-500">
-                            <i class="fa fa-envelope fa-fw mr-3"></i><span
-                                class="pb-1 md:pb-0 text-sm">Bahan-Bahan</span>
+                            class="flex gap-3 py-1 md:py-3 pl-1 align-middle text-amber-800 no-underline hover:text-gray-900 border-b-2 ">
+                            <svg class="h-5 w-5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z" />
+                                <path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+                                <path
+                                    d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z" />
+                                <path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z" />
+                                <path
+                                    d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z" />
+                                <path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
+                                <path
+                                    d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z" />
+                                <path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z" />
+                            </svg><span class="pb-1 md:pb-0 text-sm">Bahan-Bahan</span>
                         </a>
                     </li>
                     <li class="mr-6 my-2 md:my-0">
                         <a href="#"
-                            class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-green-500">
+                            class="block py-1 md:py-3 pl-1 align-middle text-amber-800 no-underline hover:text-gray-900 border-b-2 ">
                             <i class="fas fa-chart-area fa-fw mr-3"></i><span
                                 class="pb-1 md:pb-0 text-sm">Analytics</span>
                         </a>
                     </li>
                     <li class="mr-6 my-2 md:my-0">
                         <a href="#"
-                            class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-red-500">
+                            class="block py-1 md:py-3 pl-1 align-middle text-amber-800 no-underline hover:text-gray-900 border-b-2 ">
                             <i class="fa fa-wallet fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Payments</span>
                         </a>
                     </li>
                 </ul>
 
-                <div class="relative pull-right pl-4 pr-4 md:pr-0">
-                    <input type="search" placeholder="Search"
-                        class="w-full bg-gray-100 text-sm text-gray-800 transition border focus:outline-none focus:border-gray-700 rounded py-1 px-2 pl-10 appearance-none leading-normal">
-                    <div class="absolute search-icon" style="top: 0.375rem;left: 1.75rem;">
-                        <svg class="fill-current pointer-events-none text-gray-800 w-4 h-4"
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path
-                                d="M12.9 14.32a8 8 0 1 1 1.41-1.41l5.35 5.33-1.42 1.42-5.33-5.34zM8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12z">
-                            </path>
-                        </svg>
-                    </div>
-                </div>
+
 
             </div>
 

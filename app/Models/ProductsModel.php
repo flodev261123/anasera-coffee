@@ -13,12 +13,20 @@ class ProductsModel extends Model {
 
     protected bool $allowEmptyInserts = false;
 
-    public function getProductsWithCategory()
+    public function getProductsWithCategory($categoryId = null)
     {
-        return $this->select('produk.*, category.category_name')
-                    ->join('category', 'category.id = produk.category')
-                    ->orderBy('produk.id', 'DESC')
-                    ->findAll();
+        $builder = $this->db->table('produk'); 
+        $builder->select('produk.*, category.category_name');
+        $builder->join('category', 'category.id = produk.category');
+        $builder->orderBy('produk.id', 'DESC');
+    
+        if ($categoryId !== null && $categoryId != 'all') {
+            $builder->where('produk.category', $categoryId);
+        }
+    
+        return $builder->get()->getResultArray();
     }
+
+   
     
 }

@@ -2,11 +2,13 @@
 namespace App\Controllers;
 
 use App\Models\IngredientsModel;
+use App\Models\RecipesModel;
+use App\Models\ProductsModel;
 
 
 class Ingredients extends BaseController
 {
-    // Show products list
+
     public function index()
     {
        $IngredientsModel = new IngredientsModel();
@@ -20,7 +22,18 @@ class Ingredients extends BaseController
 
         $data['ingredients'] = $IngredientsModel ->findAll();
         $data['userName'] = $userName;
+       
+       
+        $cek = $IngredientsModel->countAllResults();
 
+        if($cek == 0)
+        {
+            $empty = "Ups !! belum Ada Bahan";
+            $notFound = $session->setFlashdata("emptybahan",$empty);
+          
+        }
+
+    
         echo view("autoviews/MainHeader", $data);
         echo view("ingredients/IngredientsView", $data);
         echo view("autoviews/MainFooter", $data);
@@ -77,7 +90,7 @@ public function store_ingredients()
             'label' => 'unit',
             'rules' => 'required',
             'errors' => [
-                'required' => 'stock harus diisi.',
+                'required' => 'satuan unit harus dipilih.',
                
              
             ]
@@ -85,11 +98,11 @@ public function store_ingredients()
        
         'harga_beli' => [
             'label' => 'harga beli',
-            'rules' => 'required|numeric|greater_than_equal_to[0]',
+            'rules' => 'required|numeric|greater_than_equal_to[1]',
             'errors' => [
                 'required' => 'Harga beli harus diisi.',
                 'numeric' => 'Harga beli harus berupa numeric.',
-                'greater_than_equal_to' => 'Harga beli Tidak Boleh Minus.',
+                'greater_than_equal_to' => 'Harga harus valid.',
                
              
             ]
@@ -119,25 +132,15 @@ public function store_ingredients()
         echo view("ingredients/AddIngredients", $data);
         echo view("autoviews/MainFooter", $data);
     } else {
-        $file = $this->request->getFile('foto');
-        if ($file->isValid() && !$file->hasMoved()) {
-            $newName = $file->getRandomName();
-            if ($file->move(FCPATH . 'uploads', $newName)) {
-                
-                echo "File moved successfully: " . $newName;
-            } else {
-            
-                echo "File move failed.";
-                return;
-            }
-
+       
             $data = [
                 'ingredients_name' => $this->request->getVar('ingredients_name'),
                 'stock' => $this->request->getVar('stock'),
                 'unit' => $this->request->getVar('unit'),
-                'foto' => 'uploads/' . $newName,
                 'description' => $this->request->getVar('description'),
                 'harga_beli' => $this->request->getVar('harga_beli'),
+                
+                
              
             ];
 
@@ -151,15 +154,141 @@ public function store_ingredients()
             }
 
             return $this->response->redirect(site_url('/ingredients'));
-        } else {
+     
            
-            $data['validation'] = $this->validator;
-            $data['fileError'] = 'File upload failed, please try again.';
+        
+    }
+}
 
-            echo view("autoviews/MainHeader", $data);
-            echo view("ingredients/AddIngredients", $data);
-            echo view("autoviews/MainFooter", $data);
+
+public function edit($id)
+{
+    helper('form');
+  
+    $ingredientsModel = new IngredientsModel();
+    $session = session();
+
+        $ingredient = $ingredientsModel->find($id);
+        if (!$ingredient) {
+            return redirect()->to('/ingredients')->with('error', 'Product not found.');
         }
+
+     
+        if ($session->has('name')) {
+            $userName = $session->get('name');
+        } else {
+            return redirect()->to('loginadmin');
+        }
+
+        $data['ingredients'] = $ingredientsModel->find($id);
+        $data['userName'] = $userName;
+       
+
+       
+
+        echo view("autoviews/MainHeader", $data);
+        echo view("ingredients/EditIngredientsView", $data);
+        echo view("autoviews/MainFooter", $data);
+    
+}
+
+
+public function update_ingredients($id)
+{
+    helper('form');
+  
+    $IngredientsModel = new IngredientsModel();
+
+    $val = $this->validate([
+        'ingredients_name' => [
+            'label' => 'Nama Bahan',
+            'rules' => 'required',
+            'errors' => [
+                'required' => 'Nama Bahan harus diisi.'
+            ]
+        ],
+        'stock' => [
+            'label' => 'stock',
+            'rules' => 'required|numeric|greater_than_equal_to[0]',
+            'errors' => [
+                'required' => 'stock harus diisi.',
+                'numeric' => 'stock harus berupa numeric.',
+                'greater_than_equal_to' => 'stock Tidak Boleh Minus.',
+               
+             
+            ]
+        ],
+        'unit' => [
+            'label' => 'unit',
+            'rules' => 'required',
+            'errors' => [
+                'required' => 'satuan unit harus dipilih.',
+               
+             
+            ]
+        ],
+       
+        'harga_beli' => [
+            'label' => 'harga beli',
+            'rules' => 'required|numeric|greater_than_equal_to[1]',
+            'errors' => [
+                'required' => 'Harga beli harus diisi.',
+                'numeric' => 'Harga beli harus berupa numeric.',
+                'greater_than_equal_to' => 'Harga harus valid.',
+               
+             
+            ]
+        ],
+       
+       
+    ]);
+
+ 
+   
+    $session = session();
+
+    if ($session->has('name')) {
+        $userName = $session->get('name');
+    } else {
+        return redirect()->to('loginadmin');
+    }
+
+    $data['userName'] = $userName;
+
+    if (!$val) {
+
+        $data['ingredients'] = $IngredientsModel->find($id);
+        $data['validation'] = $this->validator;
+
+        echo view("autoviews/MainHeader", $data);
+        echo view("ingredients/EditIngredientsView", $data);
+        echo view("autoviews/MainFooter", $data);
+    } else {
+       
+
+            $data = [
+                'ingredients_name' => $this->request->getVar('ingredients_name'),
+                'stock' => $this->request->getVar('stock'),
+                'unit' => $this->request->getVar('unit'),
+                'description' => $this->request->getVar('description'),
+                'harga_beli' => $this->request->getVar('harga_beli'),
+               
+                
+             
+            ];
+
+            if ($IngredientsModel->update($id,$data)) {
+           
+                echo "Data inserted successfully.";
+            } else {
+              
+                echo "Data insert failed.";
+                print_r($IngredientsModel->errors());
+            }
+
+            return $this->response->redirect(site_url('/ingredients'));
+        
+        
     }
 }
 
@@ -199,12 +328,16 @@ public function store_ingredients()
 // }
 
 
-public function delete_ingredients($id = null)
+
+
+public function delete_ingredients($id)
 {
-    
-    $IngredientsModel = new IngredientsModel();
-    $IngredientsModel->where('id', $id)->delete($id);
+    $ingredientModel = new IngredientsModel();
+    $ingredientModel->where('id', $id)->delete($id);
     return $this->response->redirect(site_url('/ingredients'));
 }
+
+
+
 
 }

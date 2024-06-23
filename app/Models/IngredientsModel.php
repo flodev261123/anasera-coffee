@@ -26,4 +26,7 @@ class IngredientsModel extends Model {
             return redirect()->to("products");
         }
     }
+
+    
+   
 }

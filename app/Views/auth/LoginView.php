@@ -31,7 +31,7 @@
 
         <form class="space-y-6" action="loginadmin" method="post">
 
-            <h5 class="text-xl font-medium text-amber-700 dark:text-white text-center">Sign in to Nanda Coffeeshop</h5>
+            <h5 class="text-xl font-medium text-amber-700 dark:text-white text-center">Log In to Anasera Inventory</h5>
             <?php if (session()->getFlashdata("error")): ?>
             <div class="bg-red-500 text-white p-2 rounded text-center">
                 <?= session()->getFlashdata("error") ?>
